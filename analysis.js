@@ -16,7 +16,7 @@ function main()
 	complexity(filePath);
 	complexityBuilder.report();
 
-	dynamic(filePath);
+	//dynamic(filePath);
 
 }
 
