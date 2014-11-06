@@ -33,13 +33,15 @@ var complexityBuilder =
 {
 	Functions:0,
 	// Number of if statements/loops + 1
-	SimpleCyclomaticComplexity: 0,
+	SimpleCyclomaticComplexity: 1,
 	// The max depth of scopes (nested ifs, loops, etc)
 	MaxNestingDepth: 0,
 	// Average number of parameters for functions
 	MeanParameterCount: 0,
 	// Max number of parameters for functions
 	MaxParameterCount: 0,
+	// Total Number of parameters for functions
+	TotalParameters: 0,
 
 	report : function()
 	{
@@ -50,7 +52,7 @@ var complexityBuilder =
 			"Mean Parameters {3}\n" +
 			"Max Parameters {4}\n")
 			.format(complexityBuilder.Functions,complexityBuilder.SimpleCyclomaticComplexity, this.MaxNestingDepth,
-			        complexityBuilder.MeanParameterCount, complexityBuilder.MaxParameterCount)
+			        complexityBuilder.TotalParameters / complexityBuilder.Functions , complexityBuilder.MaxParameterCount)
 		);
 	}
 };
@@ -64,10 +66,24 @@ function complexity(filePath)
 	{
 		if (node.type === 'FunctionDeclaration') 
 		{
-			console.log( "Line : {0} Function: {1}".format(node.loc.start.line,
-				functionName(node)));
+			//console.log( "Line : {0} Function: {1}".format(node.loc.start.line,
+			//	functionName(node)));
 
 			complexityBuilder.Functions++;
+			//console.log("Line : {0} Function: {1} Params: {2}".format(node.loc.start.line,
+			//		functionName(node), node.params.length));
+			complexityBuilder.TotalParameters += node.params.length;
+			if(node.params.length > complexityBuilder.MaxParameterCount){
+				complexityBuilder.MaxParameterCount = node.params.length; 
+			}			
+		}
+		else if (node.type === 'IfStatement' || 
+				 node.type === 'WhileStatement' || 
+				 node.type === 'ForStatement' || 
+				 node.type === 'ForInStatement' ||
+				 node.type  === 'DoWhileStatement'){
+			
+			complexityBuilder.SimpleCyclomaticComplexity++;
 		}
 	});
 
