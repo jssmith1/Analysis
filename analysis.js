@@ -68,14 +68,22 @@ function complexity(filePath)
 		{
 			//console.log( "Line : {0} Function: {1}".format(node.loc.start.line,
 			//	functionName(node)));
-
+			
 			complexityBuilder.Functions++;
 			//console.log("Line : {0} Function: {1} Params: {2}".format(node.loc.start.line,
 			//		functionName(node), node.params.length));
 			complexityBuilder.TotalParameters += node.params.length;
 			if(node.params.length > complexityBuilder.MaxParameterCount){
 				complexityBuilder.MaxParameterCount = node.params.length; 
-			}			
+			}
+			var DepthResult = {nestedDepth:0};
+			visitDepth(node, 0, DepthResult);
+			console.log("Line : {0} Function: {1} Depth: {2}".format(node.loc.start.line,
+					functionName(node), DepthResult.nestedDepth));
+			
+			if(complexityBuilder.MaxNestingDepth < DepthResult.nestedDepth){
+				complexityBuilder.MaxNestingDepth = DepthResult.nestedDepth;
+			}
 		}
 		else if (node.type === 'IfStatement' || 
 				 node.type === 'WhileStatement' || 
@@ -87,6 +95,47 @@ function complexity(filePath)
 		}
 	});
 
+}
+
+function decisionNode(node){
+	return (node.type === 'IfStatement' || 
+			 node.type === 'WhileStatement' || 
+			 node.type === 'ForStatement' || 
+			 node.type === 'ForInStatement' ||
+			 node.type  === 'DoWhileStatement')
+}
+
+function visitDepth(object, depth, result){
+	var key, child;
+	var children = 0;
+	for (key in object) {
+        if (object.hasOwnProperty(key)) {
+            child = object[key];
+            if (typeof child === 'object' && child !== null) {
+                //console.log(depth)
+            	if (key == "alternate"){
+            		visitDepth(child, depth, result);	
+            	}
+            	else if(decisionNode(child)){
+            		visitDepth(child, depth + 1, result);
+            	}
+            	else{
+            		visitDepth(child, depth, result);
+            	}
+                children++;
+            }
+        }
+    }
+	if(children == 0){
+		//console.log("IN CHILD", depth, "With MAX", result.nestedDepth);
+		if (result.nestedDepth < depth){
+			result.nestedDepth = depth;
+		}
+	}
+}
+
+function test(){
+	if(true){}	
 }
 
 function traverse(object, visitor) 
